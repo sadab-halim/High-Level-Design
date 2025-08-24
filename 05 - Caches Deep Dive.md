@@ -2,31 +2,25 @@
 
 ---
 
-## **Module 1: Introduction and Core Concepts**
-### **What is a Cache?**
+## Module 1: Introduction and Core Concepts
+### What is a Cache?
 In simple terms, a **cache** is a high-speed data storage layer that stores a subset of data, typically transient in nature, so that future requests for that data are served up faster than is possible by accessing the data's primary storage location. The goal is to reduce latency and the load on the backend system by avoiding the expensive operation of fetching the same data over and over again.
 
-**Analogy: The University Librarian**
-
-Imagine you're writing a research paper and need several books from a vast university library (the **database** or **primary storage**). The library is huge, and finding a book in the main stacks can be a slow process.
-
-- **First Request (a Cache Miss):** You ask the librarian at the front desk (the **application**) for a specific book. The librarian doesn't have it handy, so they go into the massive, multi-level stacks (the **database**) to find it. This takes time. When they return, they give you the book.
-- **Caching the Data:** The librarian, being clever, notices that many students are asking for the same few popular books today. Instead of returning them to the deep stacks immediately, they place a copy of each popular book on a small, easily accessible shelf right behind the front desk. This special shelf is the **cache**.
-- **Second Request (a Cache Hit):** The next time you (or another student) ask for one of those popular books, the librarian doesn't need to make the long trip to the main stacks. They simply turn around, grab the book from the shelf behind them, and hand it to you in seconds.
-
+>**Analogy: The University Librarian** <br>
+>Imagine you're writing a research paper and need several books from a vast university library (the **database** or **primary storage**). The library is huge, and finding a book in the main stacks can be a slow process.
+>- **First Request (a Cache Miss):** You ask the librarian at the front desk (the **application**) for a specific book. The librarian doesn't have it handy, so they go into the massive, multi-level stacks (the **database**) to find it. This takes time. When they return, they give you the book. <br><br>
+>- **Caching the Data:** The librarian, being clever, notices that many students are asking for the same few popular books today. Instead of returning them to the deep stacks immediately, they place a copy of each popular book on a small, easily accessible shelf right behind the front desk. This special shelf is the **cache**. <br><br>
+>- **Second Request (a Cache Hit):** The next time you (or another student) ask for one of those popular books, the librarian doesn't need to make the long trip to the main stacks. They simply turn around, grab the book from the shelf behind them, and hand it to you in seconds. <br><br>
 The cache (the special shelf) is much smaller than the library (the database), but it holds the most frequently requested items, making the entire process dramatically faster for the most common requests.
 
-#### **Why was Caching created?**
-
+#### Why was Caching created?
 Caching was born from a fundamental hardware reality: **accessing data is not instantaneous, and different storage types have vastly different speeds.** A CPU can perform calculations in nanoseconds, but retrieving data from a hard drive or over a network can take milliseconds—a difference of several orders of magnitude. This speed gap creates a bottleneck.
 
-Caching solves two primary problems:
-
-1. **Reduces Latency:** It bridges the speed gap between a fast application and its slower data source. By serving data from a faster, closer location (like memory instead of a disk), it dramatically improves response times and creates a much better user experience. A web page that loads in 50ms feels instantaneous; one that takes 3 seconds feels broken. Caching is often the difference.
+#### Caching solves two primary problems
+1. **Reduces Latency:** It bridges the speed gap between a fast application and its slower data source. By serving data from a faster, closer location (like memory instead of a disk), it dramatically improves response times and creates a much better user experience. A web page that loads in 50ms feels instantaneous; one that takes 3 seconds feels broken. Caching is often the difference. <br><br>
 2. **Reduces Load:** Every request that is served from a cache is one less request the primary database or service has to handle. This is crucial for scalability. A database might only be able to handle 1,000 queries per second. But if you place a cache in front of it that serves 90% of the reads, your system can now effectively handle 10,000 read requests per second without overwhelming the database. It protects your backend from being crushed by traffic spikes.
 
-### **Core Architecture \& Philosophy**
-
+### Core Architecture \& Philosophy
 The high-level architecture is simple and elegant. A cache sits **between your application and your data source**.
 
 `Application <---> Cache <---> Primary Data Store (Database, API, etc.)`
@@ -48,84 +42,80 @@ By leveraging this principle, a small, fast cache can provide a disproportionate
 
 ---
 
-## **Module 2: The Core Curriculum - Beginner**
+## Module 2: The Core Curriculum
 This module focuses on where caches live in a system and the most fundamental policies governing their operation.
 
-### **2.1: Caching Basics (Deep Dive)**
-
+### 2.1: Caching Basics
 While we introduced the basics, let's solidify them with some key terminology and common patterns.
 
-**Core Concepts Revisited:**
-
+#### Core Concepts Revisited
 * **Cache Hit:** Occurs when the requested data is found in the cache. This is the desired outcome, as it means fast data retrieval.
 * **Cache Miss:** Occurs when the requested data is *not* found in the cache. The system must then fetch the data from the slower, primary data source.
-* **Hit Rate/Miss Rate:**
+* **Hit Rate / Miss Rate:**
     * **Hit Rate:** The percentage of requests that result in a cache hit. A higher hit rate indicates a more effective cache.
     * **Miss Rate:** The percentage of requests that result in a cache miss (1 - Hit Rate).
 * **Cache Invalidation:** The process of removing or marking data in the cache as stale or no longer valid. This is crucial for maintaining data consistency, which we'll cover more deeply later.
 * **Time-To-Live (TTL):** A common mechanism for cache invalidation. Each cached item can have a TTL, after which it automatically expires and is considered stale.
 
-**Illustrative Analogy: Your Browser's Cache**
-
+>**Analogy: Your Browser's Cache** <br>
 Your web browser uses a cache extensively. When you visit a website, your browser often stores copies of images, CSS files, and JavaScript files on your local disk.
+>* **Cache Hit:** The next time you visit that website, if these resources haven't changed, your browser loads them directly from your local disk (cache hit), making the page load much faster.
+>* **Cache Miss:** If you visit a new website, or if a resource has been updated on the server, your browser has a cache miss and must download the new version from the internet.
 
-* **Cache Hit:** The next time you visit that website, if these resources haven't changed, your browser loads them directly from your local disk (cache hit), making the page load much faster.
-* **Cache Miss:** If you visit a new website, or if a resource has been updated on the server, your browser has a cache miss and must download the new version from the internet.
-
-
-### **2.2: Cache Placement Strategies**
-
+### 2.2: Cache Placement Strategies
 The effectiveness of a cache heavily depends on where it's strategically placed within your system architecture. Caches are typically placed as close as possible to the consumer of the data to minimize network latency.
 
 Let's explore common placement strategies:
 
-1. **Client-side Caching (Browser Cache, Mobile App Cache):**
-    * **Explanation:** This is where the cache resides directly on the client device (e.g., a web browser, a mobile application). It stores static assets (images, CSS, JS), API responses, or even entire web pages.
-    * **Why/Problems Solved:** Offers the lowest latency for repeat access since data doesn't even need to traverse the network. Reduces load on the server.
-    * **Analogy:** This is like you keeping a copy of your favorite recipes in your kitchen drawer instead of going to the library every time.
-    * **Best Practices:** Leverage HTTP caching headers (`Cache-Control`, `Expires`, `ETag`, `Last-Modified`) to instruct browsers on how to cache content. For mobile apps, use local storage mechanisms.
-    * **Code Example (Illustrative HTTP Headers - Java Servlet/Spring Boot):**
+#### 1. Client-side Caching (Browser Cache, Mobile App Cache):
+* **Explanation:** This is where the cache resides directly on the client device (e.g., a web browser, a mobile application). It stores static assets (images, CSS, JS), API responses, or even entire web pages.
+* **Why / Problems Solved:** Offers the lowest latency for repeat access since data doesn't even need to traverse the network. Reduces load on the server.
+* **Analogy:** This is like you keeping a copy of your favorite recipes in your kitchen drawer instead of going to the library every time.
+* **Best Practices:** Leverage HTTP caching headers (`Cache-Control`, `Expires`, `ETag`, `Last-Modified`) to instruct browsers on how to cache content. For mobile apps, use local storage mechanisms.
+
+**Code Example (Illustrative HTTP Headers - Java Servlet/Spring Boot):**
+
 While direct "code" isn't for client-side caching (it's mostly configuration and HTTP headers), here's how a Java backend might instruct a browser to cache a resource:
 
-      ```java
-      import org.springframework.stereotype.Controller;
-      import org.springframework.web.bind.annotation.GetMapping;
-      import org.springframework.web.bind.annotation.ResponseBody;
-      import javax.servlet.http.HttpServletResponse;
-      import java.util.concurrent.TimeUnit;
+```java
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import javax.servlet.http.HttpServletResponse;
+import java.util.concurrent.TimeUnit;
       
-      @Controller
-      public class StaticContentController {
-      
-          @GetMapping("/images/logo.png")
-          @ResponseBody
-          public String getLogo(HttpServletResponse response) {
-              // Set Cache-Control header for client-side caching
-              // public: Can be cached by any cache (client, proxy, CDN)
-              // max-age: Cache valid for 1 hour (3600 seconds)
-              // immutable: Content will not change, so client can cache indefinitely (optional, for specific assets)
-              response.setHeader("Cache-Control", "public, max-age=" + TimeUnit.HOURS.toSeconds(1));
-              // You might also set ETag and Last-Modified for revalidation
-              // response.setHeader("ETag", "some-unique-hash");
-              // response.setDateHeader("Last-Modified", System.currentTimeMillis());
-      
-              return "This is the logo image content (imagine binary data here)"; // In a real app, stream the actual image
-          }
-      }
-      ```
+@Controller
+public class StaticContentController {     
+    @GetMapping("/images/logo.png")
+    @ResponseBody
+    public String getLogo(HttpServletResponse response) {
+        // Set Cache-Control header for client-side caching
+        // public: Can be cached by any cache (client, proxy, CDN)
+        // max-age: Cache valid for 1 hour (3600 seconds)
+        // immutable: Content will not change, so client can cache indefinitely (optional, for specific assets)
+        response.setHeader("Cache-Control", "public, max-age=" + TimeUnit.HOURS.toSeconds(1));
+        // You might also set ETag and Last-Modified for revalidation
+        // response.setHeader("ETag", "some-unique-hash");
+        // response.setDateHeader("Last-Modified", System.currentTimeMillis());
+        return "This is the logo image content (imagine binary data here)"; // In a real app, stream the actual image
+    }
+}
+```
 
-2. **CDN (Content Delivery Network) Caching:**
-    * **Explanation:** CDNs are globally distributed networks of proxy servers that cache static and sometimes dynamic content from your origin server. When a user requests content, the CDN serves it from the "edge location" (a server geographically closest to the user) rather than the origin server.
-    * **Why/Problems Solved:** Dramatically reduces latency for geographically dispersed users and absorbs massive traffic loads, protecting your origin server. Ideal for static assets, videos, and images.
-    * **Analogy:** Instead of everyone coming to your one home library, smaller mini-libraries (CDN edge servers) are set up in every neighborhood, each with copies of popular books.
-    * **Best Practices:** Configure appropriate cache rules (e.g., based on file type, URL path), utilize `Cache-Control` headers.
-    * **No specific code example here** as CDN configuration is typically done through the CDN provider's dashboard.
-3. **Server-side Caching (Application-level Caching):**
-    * **Explanation:** This cache lives on your application server, either within the application's memory (in-process cache) or as a separate local service on the same machine. It stores frequently accessed data results that would otherwise require computation or a database query.
-    * **Why/Problems Solved:** Reduces load on the database/backend services. Provides very low latency for repeated requests within the application instance.
-    * **Analogy:** The librarian (your application server) has a quick-reference binder (in-memory cache) with answers to common questions, so they don't have to look up the main library catalog (database) every time.
-    * **Best Practices:** Use libraries like Caffeine (for in-memory), or implement a simple `ConcurrentHashMap` for basic cases. Carefully manage cache size and invalidation.
-    * **Code Example (Java - Caffeine Cache):**
+#### 2. **CDN (Content Delivery Network) Caching:**
+* **Explanation:** CDNs are globally distributed networks of proxy servers that cache static and sometimes dynamic content from your origin server. When a user requests content, the CDN serves it from the "edge location" (a server geographically closest to the user) rather than the origin server.
+* **Why / Problems Solved:** Dramatically reduces latency for geographically dispersed users and absorbs massive traffic loads, protecting your origin server. Ideal for static assets, videos, and images.
+* **Analogy:** Instead of everyone coming to your one home library, smaller mini-libraries (CDN edge servers) are set up in every neighborhood, each with copies of popular books.
+* **Best Practices:** Configure appropriate cache rules (e.g., based on file type, URL path), utilize `Cache-Control` headers.
+* **No specific code example here** as CDN configuration is typically done through the CDN provider's dashboard.
+
+#### 3. **Server - Side Caching (Application-level Caching):**
+* **Explanation:** This cache lives on your application server, either within the application's memory (in-process cache) or as a separate local service on the same machine. It stores frequently accessed data results that would otherwise require computation or a database query.
+* **Why / Problems Solved:** Reduces load on the database/backend services. Provides very low latency for repeated requests within the application instance.
+* **Analogy:** The librarian (your application server) has a quick-reference binder (in-memory cache) with answers to common questions, so they don't have to look up the main library catalog (database) every time.
+* **Best Practices:** Use libraries like Caffeine (for in-memory), or implement a simple `ConcurrentHashMap` for basic cases. Carefully manage cache size and invalidation.
+
+**Code Example (Java - Caffeine Cache):**
 
 ```java
 import com.github.benmanes.caffeine.cache.Cache;
@@ -198,16 +188,16 @@ public class ProductService {
 }
 ```
 
-4. **Database Caching (Query Cache, Result Cache):**
-    * **Explanation:** Many modern databases (e.g., MySQL, PostgreSQL, Redis as a dedicated cache layer) have built-in caching mechanisms or are frequently used *as* a cache.
-        * **Query Cache (within DB engine):** Caches the results of frequently executed queries. If the same query is run again, and the underlying data hasn't changed, the cached result is returned directly. (Note: Many modern DBs have deprecated or discouraged query caches due to invalidation complexity).
-        * **Result Set Cache (ORM/Framework level):** An ORM (Object-Relational Mapper) like Hibernate can cache query results or entity objects.
-        * **Dedicated Cache Layer (e.g., Redis, Memcached):** A fast key-value store (often in-memory) deployed *in front* of the primary database to store frequently accessed data. This is distinct from the application's in-memory cache because it's a separate service, often shared by multiple application instances.
-    * **Why/Problems Solved:** Reduces the load directly on the database engine, improving its performance and scalability.
-    * **Analogy:** The main library (database) has a special "most popular books" section at the front (internal query cache), or you hire a dedicated assistant (Redis/Memcached) whose only job is to quickly grab books that many people ask for, so the main librarians can focus on new arrivals.
-    * **Best Practices:** Configure database-specific caching features judiciously. Use dedicated caching solutions (like Redis) for shared, distributed caching.
-    * **Code Example (Illustrative - using Redis as a Database Cache from Java):**
+#### 4. **Database Caching (Query Cache, Result Cache):**
+* **Explanation:** Many modern databases (e.g., MySQL, PostgreSQL, Redis as a dedicated cache layer) have built-in caching mechanisms or are frequently used *as* a cache.
+  * **Query Cache (within DB engine):** Caches the results of frequently executed queries. If the same query is run again, and the underlying data hasn't changed, the cached result is returned directly. (Note: Many modern DBs have deprecated or discouraged query caches due to invalidation complexity).
+  * **Result Set Cache (ORM/Framework level):** An ORM (Object-Relational Mapper) like Hibernate can cache query results or entity objects.
+  * **Dedicated Cache Layer (e.g., Redis, Memcached):** A fast key-value store (often in-memory) deployed *in front* of the primary database to store frequently accessed data. This is distinct from the application's in-memory cache because it's a separate service, often shared by multiple application instances.
+* **Why / Problems Solved:** Reduces the load directly on the database engine, improving its performance and scalability.
+* **Analogy:** The main library (database) has a special "most popular books" section at the front (internal query cache), or you hire a dedicated assistant (Redis/Memcached) whose only job is to quickly grab books that many people ask for, so the main librarians can focus on new arrivals.
+* **Best Practices:** Configure database-specific caching features judiciously. Use dedicated caching solutions (like Redis) for shared, distributed caching.
 
+**Code Example (Illustrative - using Redis as a Database Cache from Java):**
 ```java
 import redis.clients.jedis.Jedis;
 import com.fasterxml.jackson.databind.ObjectMapper; // For JSON serialization
@@ -306,12 +296,10 @@ public class UserProfileService {
 
 --- 
 
-## **Module 3: The Core Curriculum - Intermediate**
-
+## Module 3: The Core Curriculum - Intermediate
 This module covers the policies that govern the data lifecycle within the cache. Mastering these is key to designing a cache that is both performant and reliable.
 
-### **3.1: Write Policies**
-
+### 3.1: Write Policies
 When your application writes new data or updates existing data, it must decide how to synchronize that change between the cache and the primary data store (the database). This decision involves a trade-off between performance and data consistency.
 
 1. **Write-Through**
@@ -323,8 +311,8 @@ When your application writes new data or updates existing data, it must decide h
     * **Cons:**
         * **Higher Write Latency:** The application has to wait for writes to *both* the fast cache and the slow database to complete. This makes the overall write operation slower.
     * **Best Use Cases:** Applications where data integrity is paramount and stale data is unacceptable, such as financial transactions or e-commerce order processing.
-    * **Code Example (Java):**
 
+**Code Example (Java):**
 ```java
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -653,31 +641,28 @@ Take your time to internalize these complex interactions. When you are ready, sa
 This module will bridge the gap between theoretical knowledge and practical application in an interview setting.
 
 ### **Common Interview Questions (Theory)**
-
-Here are 10-15 conceptual questions an interviewer might ask, along with concise, expert-level answers.
-
 1. **Q: What is caching, and why is it essential in modern system design?**
-    * **A:** Caching is storing copies of data in a high-speed data layer so that future requests for that data can be served faster. It's essential because it significantly reduces **latency** (improving user experience) and decreases **load** on primary data stores (improving scalability and resilience) by leveraging data locality.
+   >**A:** Caching is storing copies of data in a high-speed data layer so that future requests for that data can be served faster. It's essential because it significantly reduces **latency** (improving user experience) and decreases **load** on primary data stores (improving scalability and resilience) by leveraging data locality.
 2. **Q: Explain the difference between a cache hit and a cache miss.**
-    * **A:** A **cache hit** occurs when requested data is found in the cache, allowing for fast retrieval. A **cache miss** occurs when the data is not in the cache, requiring the system to fetch it from the slower primary data store.
+   >**A:** A **cache hit** occurs when requested data is found in the cache, allowing for fast retrieval. A **cache miss** occurs when the data is not in the cache, requiring the system to fetch it from the slower primary data store.
 3. **Q: Describe the main types of cache placement strategies and their use cases.**
-    * **A:** The main types are **Client-side** (e.g., browser cache, for reducing network trips for static assets), **CDN** (Content Delivery Network, for global distribution of static and semi-static content reducing latency for distant users), **Server-side/Application-level** (in-memory or local, for frequently accessed application data reducing database load), and **Database Caching** (either built-in DB features or dedicated layers like Redis/Memcached, for reducing direct database queries).
+   >**A:** The main types are **Client-side** (e.g., browser cache, for reducing network trips for static assets), **CDN** (Content Delivery Network, for global distribution of static and semi-static content reducing latency for distant users), **Server-side/Application-level** (in-memory or local, for frequently accessed application data reducing database load), and **Database Caching** (either built-in DB features or dedicated layers like Redis/Memcached, for reducing direct database queries).
 4. **Q: Compare and contrast Write-Through and Write-Back policies.**
-    * **A:** **Write-Through** writes data to both the cache and the database simultaneously, ensuring high data consistency but incurring higher write latency. **Write-Back** writes data only to the cache initially, with asynchronous writes to the database later, offering low write latency and high throughput but risking data loss upon cache failure.
+    >**A:** **Write-Through** writes data to both the cache and the database simultaneously, ensuring high data consistency but incurring higher write latency. **Write-Back** writes data only to the cache initially, with asynchronous writes to the database later, offering low write latency and high throughput but risking data loss upon cache failure.
 5. **Q: When would you choose Write-Around, and what are its drawbacks?**
-    * **A:** Write-Around is chosen when data is written but not immediately read (e.g., bulk data ingestion, logging). It writes directly to the database, bypassing the cache. Its drawback is higher read latency for recently written data, as the first read will always be a cache miss.
+    >**A:** Write-Around is chosen when data is written but not immediately read (e.g., bulk data ingestion, logging). It writes directly to the database, bypassing the cache. Its drawback is higher read latency for recently written data, as the first read will always be a cache miss.
 6. **Q: Explain LRU and LFU cache replacement policies. What are their respective strengths and weaknesses?**
-    * **A:** **LRU (Least Recently Used)** evicts the item not accessed for the longest time, prioritizing recency. It's simple and effective but vulnerable to "scan" patterns. **LFU (Least Frequently Used)** evicts the item accessed the fewest times, prioritizing popularity. It's robust against scans but more complex to implement and has a "new item" problem.
+    >**A:** **LRU (Least Recently Used)** evicts the item not accessed for the longest time, prioritizing recency. It's simple and effective but vulnerable to "scan" patterns. **LFU (Least Frequently Used)** evicts the item accessed the fewest times, prioritizing popularity. It's robust against scans but more complex to implement and has a "new item" problem.
 7. **Q: How does Segmented LRU (SLRU) address the limitations of pure LRU?**
-    * **A:** SLRU divides the cache into "probationary" and "protected" segments. New items enter probationary, and only frequently accessed items from probationary are promoted to protected. This protects highly popular items from being evicted by temporary spikes or scan operations, offering a better balance than pure LRU.
+    >**A:** SLRU divides the cache into "probationary" and "protected" segments. New items enter probationary, and only frequently accessed items from probationary are promoted to protected. This protects highly popular items from being evicted by temporary spikes or scan operations, offering a better balance than pure LRU.
 8. **Q: What is cache invalidation, and why is it considered one of the hardest problems in computer science?**
-    * **A:** Cache invalidation is removing or marking data in a cache as stale when the underlying data source changes. It's hard because ensuring global consistency (all systems seeing the freshest data) in distributed environments is complex, and missteps lead to serving incorrect information, which can be critical.
+    >**A:** Cache invalidation is removing or marking data in a cache as stale when the underlying data source changes. It's hard because ensuring global consistency (all systems seeing the freshest data) in distributed environments is complex, and missteps lead to serving incorrect information, which can be critical.
 9. **Q: Discuss Time-To-Live (TTL) and explicit invalidation strategies. What are their trade-offs?**
-    * **A:** **TTL** is simple; items expire automatically after a set time. Its trade-off is potential data staleness during the TTL period. **Explicit Invalidation** involves actively deleting items from the cache upon data modification in the primary store. It offers greater freshness but couples application logic to the cache and requires careful management.
+    >**A:** **TTL** is simple; items expire automatically after a set time. Its trade-off is potential data staleness during the TTL period. **Explicit Invalidation** involves actively deleting items from the cache upon data modification in the primary store. It offers greater freshness but couples application logic to the cache and requires careful management.
 10. **Q: Why is a distributed cache necessary in horizontally scaled applications? Name two popular distributed caching systems and their key differences.**
-    * **A:** In horizontally scaled applications, a distributed cache ensures data consistency across multiple application instances and avoids redundant data fetching. **Redis** and **Memcached** are popular. Memcached is a simpler, volatile key-value store optimized for raw speed. Redis is a more feature-rich "data structure server" with persistence, replication, and various data types, making it suitable for more complex use cases.
+    >**A:** In horizontally scaled applications, a distributed cache ensures data consistency across multiple application instances and avoids redundant data fetching. **Redis** and **Memcached** are popular. Memcached is a simpler, volatile key-value store optimized for raw speed. Redis is a more feature-rich "data structure server" with persistence, replication, and various data types, making it suitable for more complex use cases.
 11. **Q: Explain the "Cache-Aside" pattern. What is a common race condition associated with it, and how can it be mitigated?**
-    * **A:** In Cache-Aside, the application is responsible for checking the cache before hitting the database and writing to the cache after fetching from the DB on a miss. On writes, the application updates the DB and then invalidates the cache. A race condition can occur if a read operation fetches stale data from the DB just before a cache invalidation, and then overwrites the cache with this stale data. Mitigation includes using shorter TTLs as a safety net, or more complex synchronization mechanisms.
+    >**A:** In Cache-Aside, the application is responsible for checking the cache before hitting the database and writing to the cache after fetching from the DB on a miss. On writes, the application updates the DB and then invalidates the cache. A race condition can occur if a read operation fetches stale data from the DB just before a cache invalidation, and then overwrites the cache with this stale data. Mitigation includes using shorter TTLs as a safety net, or more complex synchronization mechanisms.
 
 ### **Common Interview Questions (Practical/Coding)**
 
@@ -788,8 +773,7 @@ public class UserService {
 
 ---
 
-## **System Design Scenarios**
-
+## System Design Scenarios
 Caching is a cornerstone of system design. You'll often be asked to integrate caching into a larger architecture.
 
 1. **Scenario: Design a read-heavy e-commerce product catalog service that serves millions of requests per second with low latency.**
